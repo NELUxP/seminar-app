@@ -1,29 +1,31 @@
-"use client"
+"use client" // Указывает, что это клиентский компонент Next.js
 
 import { useEffect, useState } from "react"
+// Импорт API функций и типов
 import { fetchSeminars, deleteSeminar, updateSeminar, type Seminar } from "@/lib/api"
+// Компоненты
 import SeminarCard from "./SeminarCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useSearchParams } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { SeminarSkeleton } from "./seminar-skeleton"
+import { useSearchParams } from "next/navigation" // Хук для работы с параметрами URL
+import { motion, AnimatePresence } from "framer-motion" // Анимации
+import { SeminarSkeleton } from "./seminar-skeleton" // Скелетон загрузки
 
 export default function SeminarsList() {
-  // State variables
-  const [seminars, setSeminars] = useState<Seminar[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const searchParams = useSearchParams()
-  const query = searchParams.get("query") || ""
+  // Состояния компонента
+  const [seminars, setSeminars] = useState<Seminar[]>([]) // Список семинаров
+  const [loading, setLoading] = useState(true) // Флаг загрузки
+  const [error, setError] = useState<string | null>(null) // Ошибки
+  const searchParams = useSearchParams() // Параметры поиска из URL
+  const query = searchParams.get("query") || "" // Поисковый запрос
 
-  // Fetch seminars on component mount or when search query changes
+  // Эффект для загрузки данных при изменении поискового запроса
   useEffect(() => {
     loadSeminars()
   }, [query])
 
-  // Function to load seminars from the API
+  // Функция загрузки семинаров
   const loadSeminars = async () => {
     try {
       setLoading(true)
@@ -32,7 +34,7 @@ export default function SeminarsList() {
       const data = await fetchSeminars()
       console.log("Seminars fetched successfully:", data)
 
-      // Filter seminars if there's a search query
+      // Фильтрация данных по поисковому запросу
       const filteredData = query
         ? data.filter(
             (seminar: Seminar) =>
@@ -50,11 +52,11 @@ export default function SeminarsList() {
     }
   }
 
-  // Handle seminar deletion
+  // Обработчик удаления семинара
   const handleDelete = async (id: number) => {
     try {
       await deleteSeminar(id)
-      // Update the local state after successful deletion
+      // Обновление локального состояния после удаления
       setSeminars(seminars.filter((seminar) => seminar.id !== id))
     } catch (err) {
       setError("Не удалось удалить семинар. Пожалуйста, попробуйте позже.")
@@ -62,11 +64,11 @@ export default function SeminarsList() {
     }
   }
 
-  // Handle seminar update
+  // Обработчик обновления семинара
   const handleUpdate = async (updatedSeminar: Seminar) => {
     try {
       const updated = await updateSeminar(updatedSeminar)
-      // Update the local state after successful update
+      // Обновление локального состояния
       setSeminars(seminars.map((seminar) => (seminar.id === updated.id ? updated : seminar)))
     } catch (err) {
       setError("Не удалось обновить семинар. Пожалуйста, попробуйте позже.")
@@ -74,10 +76,11 @@ export default function SeminarsList() {
     }
   }
 
-  // Render loading state
+  // Рендер состояния загрузки
   if (loading) {
     return (
       <div className="py-8">
+        {/* Скелетоны для анимированной загрузки */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, index) => (
             <SeminarSkeleton key={index} />
@@ -87,16 +90,18 @@ export default function SeminarsList() {
     )
   }
 
-  // Render error state
+  // Рендер состояния ошибки
   if (error) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="py-8">
+        {/* Компонент Alert для отображения ошибки */}
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Ошибка</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
         <div className="flex justify-center">
+          {/* Кнопка повторной попытки */}
           <Button onClick={loadSeminars} variant="outline" className="mt-4">
             <RefreshCw className="mr-2 h-4 w-4" />
             Попробовать снова
@@ -106,9 +111,10 @@ export default function SeminarsList() {
     )
   }
 
-  // Render seminars list
+  // Основной рендер компонента
   return (
     <div className="py-8">
+      {/* Блок с результатами поиска */}
       {query && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
           <h2 className="text-xl font-medium mb-2">
@@ -122,6 +128,7 @@ export default function SeminarsList() {
         </motion.div>
       )}
 
+      {/* Список семинаров с анимациями */}
       <AnimatePresence>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {seminars.map((seminar, index) => (
@@ -130,13 +137,13 @@ export default function SeminarsList() {
               seminar={seminar}
               onDelete={handleDelete}
               onUpdate={handleUpdate}
-              index={index}
+              index={index} // Индекс для анимации
             />
           ))}
         </div>
       </AnimatePresence>
 
-      {/* Display message if no seminars are available */}
+      {/* Состояние пустого списка (без поиска) */}
       {seminars.length === 0 && !query && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
           <p className="text-muted-foreground text-lg">Семинары не найдены</p>
@@ -149,4 +156,3 @@ export default function SeminarsList() {
     </div>
   )
 }
-

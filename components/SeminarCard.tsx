@@ -19,19 +19,16 @@ interface SeminarCardProps {
 }
 
 export default function SeminarCard({ seminar, onDelete, onUpdate, index }: SeminarCardProps) {
-  // State for controlling modal visibility
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
-  // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     try {
       await onDelete(seminar.id)
       setShowDeleteModal(false)
     } catch (error) {
       console.error("Error in delete confirmation:", error)
-      // Error is handled in parent component
     }
   }
 
